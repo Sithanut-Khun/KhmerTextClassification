@@ -1,0 +1,58 @@
+# configs.yaml
+project:
+  name: "KhmerTextClassification"
+  root: "."  
+
+paths:
+  # Data paths
+  data:
+    root: "data"
+    raw: "data/raw"
+    processed: "data/processed"
+  
+  # Model paths
+  models:
+    root: "models"
+    trained: "models/trained"
+    checkpoints: "models/checkpoints"
+  
+  # Notebook paths
+  notebooks: "notebooks"
+  
+  # Output/Results
+  outputs: "outputs"
+  logs: "logs"
+
+# Dataset configuration
+datasets:
+  train:
+    path: "data/raw/train.csv"
+  test:
+    path: "data/raw/test.csv"
+  merged:
+    path: "data/raw/merged_khmer_dataset.csv"
+  voa_sources:
+    - "data/raw/voa_khmer_culture.csv"
+    - "data/raw/voa_khmer_education.csv"
+    - "data/raw/voa_khmer_environment.csv"
+    - "data/raw/voa_khmer_rights.csv"
+    - "data/raw/voa_khmer_science.csv"
+  tokenzied_data:
+    - "data/processed/train_tokenized.csv"
+    - "data/processed/test_tokenized.csv"
+    - "data/processed/val_tokenized.csv"
+
+
+# # Model configuration
+# model:
+#   name: "khmer_classifier"
+#   version: "1.0"
+#   save_dir: "models/trained"
+#   checkpoint_dir: "models/checkpoints"
+
+# # Training configuration
+# training:
+#   batch_size: 32
+#   epochs: 10
+#   learning_rate: 0.001
+#   output_dir: "outputs/training"
