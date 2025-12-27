@@ -1,0 +1,19 @@
+# --- System & Environment ---
+.DS_Store
+.env
+.venv/
+venv/
+__pycache__/
+
+# --- Heavy Data Science Files ---
+# We ignore these because they are too big for GitHub
+# They are already hosted on Hugging Face!
+data/
+models/
+*.joblib
+*.csv
+
+# --- Node/Web App ---
+node_modules/
+dist/
+.gradio/
