@@ -8,10 +8,13 @@ __pycache__/
 # --- Heavy Data Science Files ---
 # We ignore these because they are too big for GitHub
 # They are already hosted on Hugging Face!
-data/
+data/raw/
+data/processed/
 models/
 *.joblib
-*.csv
+
+!data/processed/clean_processed_khmertext_dataset.csv
+!data/processed/processed_khmertext_dataset.csv
 
 # --- Node/Web App ---
 node_modules/
