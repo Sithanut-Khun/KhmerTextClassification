@@ -10,7 +10,7 @@ __pycache__/
 # They are already hosted on Hugging Face!
 data/raw/
 data/processed/
-models/
+
 *.joblib
 
 !data/processed/clean_processed_khmertext_dataset.csv
