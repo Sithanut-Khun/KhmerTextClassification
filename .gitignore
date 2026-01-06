@@ -11,7 +11,10 @@ __pycache__/
 data/raw/
 data/processed/
 
-*.joblib
+
+models/trained/*
+
+!models/trained/linear_svm_model.joblib
 
 !data/processed/clean_processed_khmertext_dataset.csv
 !data/processed/processed_khmertext_dataset.csv
