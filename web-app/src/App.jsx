@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Client } from "@gradio/client";
 import khunSithanutPhoto from './assets/khun_sithanut.jpg';
+import Ringo form './assets/e20211040.jpg';
 
 // --- CONFIGURATION ---
 const HF_SPACE_URL = "https://thanut003-khmer-text-classifier-api.hf.space";
@@ -15,17 +16,17 @@ const MEMBERS = [
     photo: khunSithanutPhoto
   },
   {
-    name: "Member Name 2",
-    role: "ML Engineer",
-    email: "student2@e.t-ams.edu.kh",
-    linkedin: "#",
-    photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka"
+    name: "KHEM Lyhourt",
+    role: "Data Scientist",
+    email: "khemlyhourtt@gmail",
+    linkedin: "https://www.linkedin.com/in/khem-lyhourt-502032352/",
+    photo: Ringo
   },
   {
-    name: "Member Name 3",
+    name: "Bun Ratnatepy",
     role: "Frontend Dev",
-    email: "student3@e.t-ams.edu.kh",
-    linkedin: "#",
+    email: "bunratnatepy@gmail.com",
+    linkedin: "https://www.linkedin.com/in/bun-ratnatepy-5859342b6/",
     photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=John"
   },
   {
