@@ -4,9 +4,15 @@ import pandas as pd
 import re
 import nltk
 import numpy as np
-from khmernltk import word_tokenize
+import traceback
+import warnings
 
 # --- 1. SETUP ---
+warnings.filterwarnings("ignore")
+
+from khmernltk import word_tokenize
+
+# NLTK Setup
 try:
     nltk.data.find('corpora/stopwords')
 except LookupError:
@@ -15,7 +21,7 @@ except LookupError:
 from nltk.corpus import stopwords
 english_stopwords = set(stopwords.words('english'))
 
-# CRITICAL: This list MUST match the order of your LabelEncoder classes (0, 1, 2...)
+# LABELS
 LABELS = [
     'Culture', 'Economic', 'Education', 'Environment',
     'Health', 'Politics', 'Human Rights', 'Science'
@@ -43,16 +49,17 @@ def khmer_tokenize(text):
             processed_tokens.append(token)
     return " ".join(processed_tokens)
 
-# --- 2. LOAD MODELS ---
-print("Loading processors...")
-try:
-    vectorizer = joblib.load("tfidf_vectorizer.joblib")
-    svd = joblib.load("truncated_svd.joblib")
-    print("✅ Vectorizer & SVD loaded")
-except Exception as e:
-    print(f"❌ CRITICAL LOAD ERROR: {e}")
+# --- HELPER: SOFTMAX ---
+# Converts raw distance scores (e.g., -1.5, 2.3) into probabilities (e.g., 0.1, 0.8)
+def softmax(x):
+    e_x = np.exp(x - np.max(x)) # Subtract max for numerical stability
+    return e_x / e_x.sum()
 
-models = {}
+# --- 2. LAZY LOADING ---
+vectorizer = None
+svd = None
+models_cache = {} 
+
 model_files = {
     "XGBoost": "xgboost_model.joblib",
     "LightGBM": "lightgbm_model.joblib",
@@ -61,59 +68,119 @@ model_files = {
     "Linear SVM": "linear_svm_model.joblib"
 }
 
-for name, filename in model_files.items():
+def load_vectorizers():
+    global vectorizer, svd
+    if vectorizer is None:
+        try:
+            vectorizer = joblib.load("tfidf_vectorizer.joblib")
+            svd = joblib.load("truncated_svd.joblib")
+        except Exception as e:
+            print(f"Error loading vectorizers: {e}")
+            return False
+    return True
+
+def get_model(name):
+    if name in models_cache:
+        return models_cache[name]
     try:
-        models[name] = joblib.load(filename)
-        print(f"✅ Loaded {name}")
-    except:
-        print(f"⚠️ Skipping {name}")
+        filename = model_files.get(name)
+        if not filename: return None
+        loaded_model = joblib.load(filename)
+        models_cache[name] = loaded_model 
+        return loaded_model
+    except Exception as e:
+        print(f"Error loading {name}: {e}")
+        return None
 
 # --- 3. PREDICTION FUNCTION ---
-# --- 3. PREDICTION FUNCTION ---
 def predict(text, model_name):
-    if not text: return "Please enter text", {}, []
-    if model_name not in models: return "Model not found", {}, []
+    if not text: 
+        return "Please enter text", {}, []
     
+    if not load_vectorizers():
+        return "System Error: Vectorizers missing", {}, []
+
+    current_model = get_model(model_name)
+    if current_model is None:
+        return f"Error: Could not load {model_name}", {}, []
+
     try:
-        # Pipeline
         processed = khmer_tokenize(text)
-        vectors = vectorizer.transform([processed]) # TF-IDF Matrix (Sparse)
-        vectors_reduced = svd.transform(vectors)    # SVD Matrix (Dense)
-        model = models[model_name]
+        vectors = vectorizer.transform([processed])
+        vectors_reduced = svd.transform(vectors)
         
-        # --- NEW: EXTRACT KEYWORDS ---
-        # We look at the TF-IDF vector (before SVD) to find the strongest words
+        # --- Keyword Extraction ---
         feature_array = np.array(vectorizer.get_feature_names_out())
         tfidf_sorting = np.argsort(vectors.toarray()).flatten()[::-1]
         
-        # Get top 10 words that actually have a score > 0
         top_n = 10
         keywords = []
         for idx in tfidf_sorting[:top_n]:
             if vectors[0, idx] > 0:
                 keywords.append(feature_array[idx])
+
+        # --- Prediction Logic ---
+        confidences = {}
+        top_label = ""
         
-        # --- PREDICTION ---
-        if hasattr(model, "predict_proba"):
-            probas = model.predict_proba(vectors_reduced)[0]
-            confidences = {LABELS[i]: float(probas[i]) for i in range(len(LABELS))}
-            top_label = max(confidences, key=confidences.get)
-        else:
-            raw_pred = model.predict(vectors_reduced)[0]
-            pred_idx = int(raw_pred) if isinstance(raw_pred, (int, np.integer)) else np.argmax(raw_pred)
-            top_label = LABELS[pred_idx]
-            confidences = {LABELS[pred_idx]: 1.0}
-            
+        # STRATEGY 1: NATIVE PROBABILITIES (XGBoost, RF, LogReg)
+        if hasattr(current_model, "predict_proba"):
+            try:
+                probas = current_model.predict_proba(vectors_reduced)[0]
+                for i in range(len(LABELS)):
+                    if i < len(probas):
+                        confidences[LABELS[i]] = float(probas[i])
+                top_label = max(confidences, key=confidences.get)
+            except:
+                # Fallback if predict_proba fails
+                pass
+
+        # STRATEGY 2: DECISION FUNCTION (SVM fallback)
+        # If strategy 1 didn't work, we try to use "distance" scores and convert them
+        if not confidences and hasattr(current_model, "decision_function"):
+            try:
+                raw_scores = current_model.decision_function(vectors_reduced)[0]
+                # Convert raw scores (distances) to percentages using Softmax
+                probas = softmax(raw_scores)
+                
+                for i in range(len(LABELS)):
+                    if i < len(probas):
+                        confidences[LABELS[i]] = float(probas[i])
+                top_label = max(confidences, key=confidences.get)
+            except:
+                pass
+
+        # STRATEGY 3: HARD FALLBACK (If everything else fails)
+        if not confidences:
+            raw_pred = current_model.predict(vectors_reduced)[0]
+            if isinstance(raw_pred, (int, np.integer, float, np.floating)):
+                 pred_idx = int(raw_pred)
+                 top_label = LABELS[pred_idx]
+            else:
+                 top_label = str(raw_pred)
+            confidences = {top_label: 1.0}
+
         return top_label, confidences, keywords
-        
+            
     except Exception as e:
+        traceback.print_exc()
         return f"Error: {str(e)}", {}, []
 
 # --- 4. LAUNCH ---
-# IMPORTANT: allowed_origins="*" fixes the 405 error
 demo = gr.Interface(
     fn=predict,
-    inputs=[gr.Textbox(), gr.Dropdown(choices=list(models.keys()))],
-    outputs=[gr.Label(), gr.Label(), gr.JSON()]
+    inputs=[
+        gr.Textbox(lines=5, placeholder="Enter Khmer news text here...", label="Input Text"), 
+        gr.Dropdown(choices=list(model_files.keys()), value="XGBoost", label="Select Model")
+    ],
+    outputs=[
+        gr.Label(label="Top Prediction"), 
+        gr.Label(num_top_classes=8, label="Class Probabilities"), 
+        gr.JSON(label="Top Keywords")
+    ],
+    title="Khmer News Classifier",
+    description="Classify Khmer text into 8 categories."
 )
-demo.launch()
+
+if __name__ == "__main__":
+    demo.launch()

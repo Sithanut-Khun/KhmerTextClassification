@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { Client } from "@gradio/client";
 import khunSithanutPhoto from './assets/khun_sithanut.jpg';
-import Ringo form './assets/e20211040.jpg';
+import Ringo from './assets/e20211040.jpg';
+import siveeu from './assets/eng_sive_eu.jpg';
+import bunRatnatepy from './assets/bun_ratnatepy.jpg';
 
 // --- CONFIGURATION ---
 const HF_SPACE_URL = "https://thanut003-khmer-text-classifier-api.hf.space";
@@ -24,28 +26,28 @@ const MEMBERS = [
   },
   {
     name: "Bun Ratnatepy",
-    role: "Frontend Dev",
+    role: "Data Scientist",
     email: "bunratnatepy@gmail.com",
     linkedin: "https://www.linkedin.com/in/bun-ratnatepy-5859342b6/",
-    photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=John"
+    photo: bunRatnatepy
   },
   {
-    name: "Member Name 4",
-    role: "Backend Dev",
-    email: "student4@e.t-ams.edu.kh",
-    linkedin: "#",
-    photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah"
+    name: "Eng Sive Eu",
+    role: "Data Scientist",
+    email: "engseaveeu@gmail.com",
+    linkedin: "https://www.linkedin.com/in/eng-seav-eu-b53184332/",
+    photo: siveeu
   },
   {
-    name: "Member Name 5",
-    role: "Researcher",
-    email: "student5@e.t-ams.edu.kh",
+    name: "Chhran Moses",
+    role: "Data Scientist",
+    email: "chhranmoses543@gmail.com",
     linkedin: "#",
     photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Max"
   },
   {
-    name: "Member Name 6",
-    role: "Data Analyst",
+    name: "Lun Chan Poly",
+    role: "Data Scientist",
     email: "student6@e.t-ams.edu.kh",
     linkedin: "#",
     photo: "https://api.dicebear.com/7.x/avataaars/svg?seed=Zoe"

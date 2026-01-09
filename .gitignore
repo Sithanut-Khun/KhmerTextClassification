@@ -6,19 +6,38 @@ venv/
 __pycache__/
 
 # --- Heavy Data Science Files ---
-# We ignore these because they are too big for GitHub
-# They are already hosted on Hugging Face!
 data/raw/
-data/processed/
+data/processed/*
 
+tfidf_with_truncatedSVD\ copy.ipynb
 
-models/trained/*
-
-!models/trained/linear_svm_model.joblib
-
+# Allow specific processed datasets
 !data/processed/clean_processed_khmertext_dataset.csv
 !data/processed/processed_khmertext_dataset.csv
+!data/processed/train_tokenized.csv
+!data/processed/val_tokenized.csv
+!data/processed/test_tokenized.csv
 
+# Ignore all model files by default
+models/tfidf_models_with_truncatedSVD/*
+models/bow_models_with_pca/*
+
+# Allow specific preprocessors
+!models/tfidf_models_with_truncatedSVD/tfidf_vectorizer.joblib
+!models/tfidf_models_with_truncatedSVD/truncated_svd.joblib
+!models/bow_models_with_pca/count_vectorizer.joblib
+!models/bow_models_with_pca/pca.joblib
+
+# Allow all models EXCEPT Random Forest
+!models/tfidf_models_with_truncatedSVD/lightgbm_model.joblib
+!models/tfidf_models_with_truncatedSVD/linear_svm_model.joblib
+!models/tfidf_models_with_truncatedSVD/logistic_regression_model.joblib
+!models/tfidf_models_with_truncatedSVD/xgboost_model.joblib
+
+!models/bow_models_with_pca/lightgbm_model.joblib
+!models/bow_models_with_pca/linear_svm_model.joblib
+!models/bow_models_with_pca/logistic_regression_model.joblib
+!models/bow_models_with_pca/xgboost_model.joblib
 # --- Node/Web App ---
 node_modules/
 dist/

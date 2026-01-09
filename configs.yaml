@@ -13,7 +13,9 @@ paths:
   # Model paths
   models:
     root: "models"
-    trained: "models/trained"
+    tfidf_models_with_truncatedSVD: "models/tfidf_models_with_truncatedSVD"
+    bow_models_with_pca: "models/bow_models_with_pca"
+
     checkpoints: "models/checkpoints"
   
   # Notebook paths
