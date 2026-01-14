@@ -8,16 +8,16 @@
 An end-to-end Full Stack Machine Learning application capable of classifying Khmer language news articles into 8 distinct categories (Culture, Economics, Politics, etc.) with high accuracy. The project features a modern, dual-language (English/Khmer) user interface.
 
 ## 🚀 Live Demo
-- **Frontend (UI):** [Click here to view the Website](https://YOUR_USERNAME.github.io/KhmerTextClassification) *(Replace with your GitHub Pages link)*
-- **Backend (API):** [Hugging Face Space](https://huggingface.co/spaces/YOUR_USERNAME/SPACE_NAME)
+- **Frontend (UI):** [Click here to view the Website](https://sithanut-khun.github.io/KhmerTextClassification/)
+- **Backend (API):** [Hugging Face Space](https://huggingface.co/spaces/Thanut003/khmer-text-classifier-api)
 
 ---
 
 ## ✨ Key Features
 
 * **Multi-Model Support:** Users can switch between 5 different trained models in real-time:
-    * XGBoost (Best Accuracy)
-    * LightGBM (Fastest Inference)
+    * XGBoost 
+    * LightGBM 
     * Random Forest
     * Logistic Regression
     * Linear SVM
@@ -32,8 +32,8 @@ An end-to-end Full Stack Machine Learning application capable of classifying Khm
 
 ### **Data Science & NLP**
 * **Preprocessing:** `khmer-nltk` for word segmentation, Custom Regex cleaning.
-* **Feature Engineering:** TF-IDF Vectorization (8000 features) → TruncatedSVD (Dimensionality Reduction).
-* **Models:** Scikit-learn, XGBoost, LightGBM.
+* **Feature Engineering:** TF-IDF Vectorization (16K features) → TruncatedSVD (Dimensionality Reduction).
+* **Models:** Scikit-learn.
 
 ### **Backend (Hugging Face)**
 * **Framework:** Python `Gradio` (used as an API).
@@ -61,14 +61,42 @@ KhmerTextClassification/
 │   │   └── index.css          # Tailwind Styles
 │   ├── package.json
 │   └── vite.config.js
-└── README.md                  # Project Documentation
+├── .gitattributes                 
+├── .gitignore
+├── configs.yaml              # Project Path configuration
+└── README.md                 # Project Documentation
 
 
 ⚡ How to Run Locally
+
 1. Backend (Python API)
 Note: You usually don't need to run this locally if the Hugging Face space is live, but for debugging:
 
 cd deployment/huggingface
 pip install -r requirements.txt
 python app.py
+
+2. Frontend (React UI)
+
+cd web-app
+npm install
+npm run dev
+
+Open your browser at http://localhost:5173.
+
+
+👥 The Team
+Year 5 Data Science Students Department of Applied Mathematics and Statistics Institute of Technology of Cambodia (ITC)
+
+Khun Sithanut: Data Scientist
+
+Khem Lyhourt: Data Scientist
+
+Bun Ratnatepy: Data Scientist
+
+Eng Seaveu: Data Scientist
+
+Chhran Moeses: Data Scientist
+
+Lun Chanpoly: Data Scientist
 
