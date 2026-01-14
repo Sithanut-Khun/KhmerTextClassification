@@ -46,57 +46,71 @@ An end-to-end Full Stack Machine Learning application capable of classifying Khm
 
 ---
 
+
 ## 📂 Project Structure
 
 ```text
 KhmerTextClassification/
-├── data/                      # Raw and Processed datasets
-├── models/                    # Trained .joblib models (XGBoost, Vectorizers, SVD, etc.)
-├── notebooks/                 # Jupyter Notebooks for training & analysis
+├── data/                         # Raw and processed datasets
+├── models/                       # Trained .joblib models (XGBoost, Vectorizers, SVD, etc.)
+├── notebooks/                    # Jupyter notebooks for training & analysis
 ├── deployment/
-│   └── huggingface/           # Python code for the Backend API (app.py)
-├── web-app/                   # React Frontend Application
+│   └── huggingface/              # Python code for the backend API (app.py)
+├── web-app/                      # React frontend application
 │   ├── src/
-│   │   ├── App.jsx            # Main UI Logic
-│   │   └── index.css          # Tailwind Styles
+│   │   ├── App.jsx               # Main UI logic
+│   │   └── index.css             # Tailwind styles
 │   ├── package.json
 │   └── vite.config.js
-├── .gitattributes                 
+├── .gitattributes
 ├── .gitignore
-├── configs.yaml              # Project Path configuration
-└── README.md                 # Project Documentation
+├── configs.yaml                  # Project path configuration
+└── README.md                     # Project documentation
+```
+
+---
 
 
-⚡ How to Run Locally
 
-1. Backend (Python API)
-Note: You usually don't need to run this locally if the Hugging Face space is live, but for debugging:
+## ⚡ How to Run Locally
 
+### 1. Backend (Python API)
+
+> **Note:** You usually don't need to run this locally if the Hugging Face Space is live. This is mainly for debugging or development.
+
+```bash
 cd deployment/huggingface
 pip install -r requirements.txt
 python app.py
+```
 
-2. Frontend (React UI)
+### 2. Frontend (React UI)
 
+```bash
 cd web-app
 npm install
 npm run dev
+```
 
 Open your browser at http://localhost:5173.
 
 
-👥 The Team
-Year 5 Data Science Students Department of Applied Mathematics and Statistics Institute of Technology of Cambodia (ITC)
+---
 
-Khun Sithanut: Data Scientist
 
-Khem Lyhourt: Data Scientist
+## 👥 The Team
 
-Bun Ratnatepy: Data Scientist
+**Year 5 Data Science Students**  
+**Department of Applied Mathematics and Statistics**  
+**Institute of Technology of Cambodia (ITC)**
 
-Eng Seaveu: Data Scientist
+| Name | Role |
+|------|------|
+| **Khun Sithanut** | Data Scientist |
+| **Khem Lyhourt** | Data Scientist |
+| **Bun Ratnatepy** | Data Scientist |
+| **Eng Seaveu** | Data Scientist |
+| **Chhran Moeses** | Data Scientist |
+| **Lun Chanpoly** | Data Scientist |
 
-Chhran Moeses: Data Scientist
-
-Lun Chanpoly: Data Scientist
 
