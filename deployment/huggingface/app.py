@@ -6,6 +6,7 @@ import nltk
 import numpy as np
 import traceback
 import warnings
+import os
 
 # --- 1. SETUP ---
 warnings.filterwarnings("ignore")
@@ -27,6 +28,47 @@ LABELS = [
     'Health', 'Politics', 'Human Rights', 'Science'
 ]
 
+# --- 2. CONFIGURATION ---
+# specific paths for preprocessors
+VEC_TFIDF = "preprocessor/tfidf_vectorizer.joblib"
+VEC_COUNT = "preprocessor/count_vectorizer.joblib"
+RED_SVD   = "preprocessor/truncated_svd.joblib"
+
+# Map each model to its specific file paths
+MODEL_CONFIG = {
+    "XGBoost (BoW)": {
+        "model_path": "models/bow_models_without_pca/xgboost_model.joblib",
+        "vec_path": VEC_COUNT,
+        "red_path": None,
+        "dense_required": False
+    },
+    "LightGBM (BoW)": {
+        "model_path": "models/bow_models_without_pca/lightgbm_model.joblib",
+        "vec_path": VEC_COUNT,
+        "red_path": None,
+        "dense_required": False
+    },
+    "Random Forest (BoW)": {
+        "model_path": "models/bow_models_without_pca/random_forest_model.joblib",
+        "vec_path": VEC_COUNT,
+        "red_path": None,
+        "dense_required": False
+    },
+    "Linear SVM (TF-IDF + SVD)": {
+        "model_path": "models/tfidf_models_with_truncatedSVD/linear_svm_model.joblib",
+        "vec_path": VEC_TFIDF,
+        "red_path": RED_SVD,
+        "dense_required": False
+    },
+    "Logistic Regression (TF-IDF + SVD)": {
+        "model_path": "models/tfidf_models_with_truncatedSVD/logistic_regression_model.joblib",
+        "vec_path": VEC_TFIDF,
+        "red_path": RED_SVD,
+        "dense_required": False
+    }
+}
+
+# --- 3. TEXT PREPROCESSING ---
 def clean_khmer_text(text):
     if not isinstance(text, str): return ""
     text = re.sub(r'<[^>]+>', '', text)
@@ -49,116 +91,143 @@ def khmer_tokenize(text):
             processed_tokens.append(token)
     return " ".join(processed_tokens)
 
-# --- HELPER: SOFTMAX ---
-# Converts raw distance scores (e.g., -1.5, 2.3) into probabilities (e.g., 0.1, 0.8)
-def softmax(x):
-    e_x = np.exp(x - np.max(x)) # Subtract max for numerical stability
-    return e_x / e_x.sum()
+# --- 4. LAZY LOADING RESOURCES ---
+resource_cache = {}
 
-# --- 2. LAZY LOADING ---
-vectorizer = None
-svd = None
-models_cache = {} 
-
-model_files = {
-    "XGBoost": "xgboost_model.joblib",
-    "LightGBM": "lightgbm_model.joblib",
-    "Random Forest": "random_forest_model.joblib",
-    "Logistic Regression": "logistic_regression_model.joblib",
-    "Linear SVM": "linear_svm_model.joblib"
-}
-
-def load_vectorizers():
-    global vectorizer, svd
-    if vectorizer is None:
-        try:
-            vectorizer = joblib.load("tfidf_vectorizer.joblib")
-            svd = joblib.load("truncated_svd.joblib")
-        except Exception as e:
-            print(f"Error loading vectorizers: {e}")
-            return False
-    return True
-
-def get_model(name):
-    if name in models_cache:
-        return models_cache[name]
+def get_resource(path):
+    """Generic loader that handles both Windows/Linux paths safely"""
+    if not path: return None
+    
+    full_path = os.path.normpath(path)
+    
+    if full_path in resource_cache:
+        return resource_cache[full_path]
+    
+    if not os.path.exists(full_path):
+        print(f"⚠️ File not found: {full_path}")
+        return None
+    
+    print(f"⏳ Loading {full_path}...")
     try:
-        filename = model_files.get(name)
-        if not filename: return None
-        loaded_model = joblib.load(filename)
-        models_cache[name] = loaded_model 
-        return loaded_model
+        obj = joblib.load(full_path)
+        resource_cache[full_path] = obj
+        print(f"✅ Loaded {full_path}")
+        return obj
     except Exception as e:
-        print(f"Error loading {name}: {e}")
+        print(f"❌ Error loading {full_path}: {e}")
         return None
 
-# --- 3. PREDICTION FUNCTION ---
-def predict(text, model_name):
+# --- 5. HELPER: SOFTMAX ---
+def softmax(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
+
+# --- 6. PREDICTION FUNCTION ---
+def predict(text, model_choice):
     if not text: 
         return "Please enter text", {}, []
     
-    if not load_vectorizers():
-        return "System Error: Vectorizers missing", {}, []
-
-    current_model = get_model(model_name)
-    if current_model is None:
-        return f"Error: Could not load {model_name}", {}, []
+    if model_choice not in MODEL_CONFIG:
+        return "Invalid Model Selected", {}, []
+    
+    config = MODEL_CONFIG[model_choice]
+    
+    # A. Load Vectorizer
+    vectorizer = get_resource(config["vec_path"])
+    if vectorizer is None:
+        return f"Error: Vectorizer missing at {config['vec_path']}", {}, []
+    
+    # B. Load Reducer
+    reducer = None
+    if config["red_path"]:
+        reducer = get_resource(config["red_path"])
+        if reducer is None:
+            return f"Error: Reducer missing at {config['red_path']}", {}, []
+            
+    # C. Load Model
+    model = get_resource(config["model_path"])
+    if model is None:
+        return f"Error: Model missing at {config['model_path']}", {}, []
 
     try:
-        processed = khmer_tokenize(text)
-        vectors = vectorizer.transform([processed])
-        vectors_reduced = svd.transform(vectors)
+        # --- PIPELINE EXECUTION ---
+        processed_text = khmer_tokenize(text)
         
-        # --- Keyword Extraction ---
-        feature_array = np.array(vectorizer.get_feature_names_out())
-        tfidf_sorting = np.argsort(vectors.toarray()).flatten()[::-1]
+        # 1. Vectorize
+        vectors = vectorizer.transform([processed_text])
         
-        top_n = 10
+        # ⚠️ CRITICAL FIX: Convert Integer (BoW) to Float32 for LightGBM/XGBoost
+        vectors = vectors.astype(np.float32)
+        
+        # 2. Dense Conversion (Only for PCA)
+        if config["dense_required"]:
+            vectors = vectors.toarray()
+            
+        # 3. Reduce (SVD/PCA)
+        vectors_final = vectors
+        if reducer:
+            vectors_final = reducer.transform(vectors)
+            # Ensure reduced vectors are also float32 (just in case)
+            vectors_final = vectors_final.astype(np.float32)
+        
+        # --- KEYWORD EXTRACTION ---
         keywords = []
-        for idx in tfidf_sorting[:top_n]:
-            if vectors[0, idx] > 0:
-                keywords.append(feature_array[idx])
+        try:
+            feature_array = np.array(vectorizer.get_feature_names_out())
+            
+            # Check keywords using the sparse vector
+            if config["dense_required"]:
+                 raw_vector_check = vectorizer.transform([processed_text])
+            else:
+                 raw_vector_check = vectors
+                 
+            tfidf_sorting = np.argsort(raw_vector_check.toarray()).flatten()[::-1]
+            top_n = 10
+            for idx in tfidf_sorting[:top_n]:
+                if raw_vector_check[0, idx] > 0:
+                    keywords.append(feature_array[idx])
+        except:
+            keywords = ["Keywords N/A"]
 
-        # --- Prediction Logic ---
+        # --- PREDICTION ---
         confidences = {}
         top_label = ""
         
-        # STRATEGY 1: NATIVE PROBABILITIES (XGBoost, RF, LogReg)
-        if hasattr(current_model, "predict_proba"):
+        # Strategy 1: Probabilities (Trees, LogReg)
+        if hasattr(model, "predict_proba"):
             try:
-                probas = current_model.predict_proba(vectors_reduced)[0]
+                probas = model.predict_proba(vectors_final)[0]
                 for i in range(len(LABELS)):
                     if i < len(probas):
                         confidences[LABELS[i]] = float(probas[i])
                 top_label = max(confidences, key=confidences.get)
-            except:
-                # Fallback if predict_proba fails
-                pass
+            except Exception as e: 
+                print(f"predict_proba failed: {e}")
 
-        # STRATEGY 2: DECISION FUNCTION (SVM fallback)
-        # If strategy 1 didn't work, we try to use "distance" scores and convert them
-        if not confidences and hasattr(current_model, "decision_function"):
+        # Strategy 2: Decision Function (SVM fallback)
+        if not confidences and hasattr(model, "decision_function"):
             try:
-                raw_scores = current_model.decision_function(vectors_reduced)[0]
-                # Convert raw scores (distances) to percentages using Softmax
+                raw_scores = model.decision_function(vectors_final)[0]
                 probas = softmax(raw_scores)
-                
                 for i in range(len(LABELS)):
                     if i < len(probas):
                         confidences[LABELS[i]] = float(probas[i])
                 top_label = max(confidences, key=confidences.get)
-            except:
-                pass
+            except Exception as e:
+                print(f"decision_function failed: {e}")
 
-        # STRATEGY 3: HARD FALLBACK (If everything else fails)
+        # Strategy 3: Hard Fallback (Last resort)
         if not confidences:
-            raw_pred = current_model.predict(vectors_reduced)[0]
-            if isinstance(raw_pred, (int, np.integer, float, np.floating)):
-                 pred_idx = int(raw_pred)
-                 top_label = LABELS[pred_idx]
-            else:
-                 top_label = str(raw_pred)
-            confidences = {top_label: 1.0}
+            try:
+                raw_pred = model.predict(vectors_final)[0]
+                if isinstance(raw_pred, (int, np.integer, float, np.floating)):
+                     pred_idx = int(raw_pred)
+                     top_label = LABELS[pred_idx]
+                else:
+                     top_label = str(raw_pred)
+                confidences = {top_label: 1.0}
+            except Exception as e:
+                return f"Prediction Failed: {str(e)}", {}, []
 
         return top_label, confidences, keywords
             
@@ -166,12 +235,12 @@ def predict(text, model_name):
         traceback.print_exc()
         return f"Error: {str(e)}", {}, []
 
-# --- 4. LAUNCH ---
-demo = gr.Interface(
+# --- 7. LAUNCH ---
+app = gr.Interface(
     fn=predict,
     inputs=[
-        gr.Textbox(lines=5, placeholder="Enter Khmer news text here...", label="Input Text"), 
-        gr.Dropdown(choices=list(model_files.keys()), value="XGBoost", label="Select Model")
+        gr.Textbox(lines=5, placeholder="Enter Khmer news text here...", label="Input Text"),
+        gr.Dropdown(choices=list(MODEL_CONFIG.keys()), value="XGBoost", label="Select Model")
     ],
     outputs=[
         gr.Label(label="Top Prediction"), 
@@ -183,4 +252,4 @@ demo = gr.Interface(
 )
 
 if __name__ == "__main__":
-    demo.launch()
+    app.launch()

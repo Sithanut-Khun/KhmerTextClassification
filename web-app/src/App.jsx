@@ -115,7 +115,7 @@ const CATEGORY_MAP = {
 
 function App() {
   const [inputText, setInputText] = useState('');
-  const [selectedModel, setSelectedModel] = useState('XGBoost');
+  const [selectedModel, setSelectedModel] = useState('XGBoost (BoW)');
   const [result, setResult] = useState({ label: null, confidences: null, keywords: [] });
   const [isLoading, setIsLoading] = useState(false);
   const [history, setHistory] = useState([]);
@@ -211,11 +211,17 @@ function App() {
                     onChange={(e) => setSelectedModel(e.target.value)}
                     className="w-full bg-gray-900 border border-gray-600 rounded-lg text-sm p-3 text-white focus:ring-2 ring-indigo-500 outline-none"
                 >
-                    <option value="XGBoost">XGBoost</option>
+                    {/* <option value="XGBoost">XGBoost</option>
                     <option value="LightGBM">LightGBM</option>
                     <option value="Random Forest">Random Forest</option>
                     <option value="Logistic Regression">Logistic Regression</option>
-                    <option value="Linear SVM">Linear SVM</option>
+                    <option value="Linear SVM">Linear SVM</option> */}
+
+                    <option value="XGBoost (BoW)">XGBoost (BoW)</option>
+                    <option value="LightGBM (BoW)">LightGBM (BoW)</option>
+                    <option value="Random Forest (BoW)">Random Forest (BoW)</option>
+                    <option value="Logistic Regression (TF-IDF + SVD)">Logistic Regression (TF-IDF + SVD)</option>
+                    <option value="Linear SVM (TF-IDF + SVD)">Linear SVM (TF-IDF + SVD)</option>
                 </select>
             </div>
             <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
