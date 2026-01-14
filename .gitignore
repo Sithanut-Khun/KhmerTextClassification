@@ -9,7 +9,20 @@ __pycache__/
 data/raw/
 data/processed/*
 
+models/bow_with_pca/
+models/bow_no_pca/
+models/tfidf_with_svd/
+models/tfidf_no_svd/
+
 tfidf_with_truncatedSVD\ copy.ipynb
+
+
+tfidf_with_truncatedSVD(8000).ipynb
+tfidf_with_all_features(8000).ipynb
+bow_with_pca(8000).ipynb
+bow_with_all_features(8000).ipynb
+
+notebook_use_all_feature.ipynb
 
 # Allow specific processed datasets
 !data/processed/clean_processed_khmertext_dataset.csv
@@ -18,26 +31,39 @@ tfidf_with_truncatedSVD\ copy.ipynb
 !data/processed/val_tokenized.csv
 !data/processed/test_tokenized.csv
 
-# Ignore all model files by default
-models/tfidf_models_with_truncatedSVD/*
-models/bow_models_with_pca/*
+# # Ignore all model files by default
+# models/tfidf_models_with_truncatedSVD/*
+# models/bow_models_with_pca/*
+# models/bow_models_without_pca/*
+# models/tfidf_models_without_truncatedSVD/*
 
-# Allow specific preprocessors
-!models/tfidf_models_with_truncatedSVD/tfidf_vectorizer.joblib
-!models/tfidf_models_with_truncatedSVD/truncated_svd.joblib
-!models/bow_models_with_pca/count_vectorizer.joblib
-!models/bow_models_with_pca/pca.joblib
+# # Allow specific preprocessors
+# !models/tfidf_models_with_truncatedSVD/tfidf_vectorizer.joblib
+# !models/tfidf_models_with_truncatedSVD/truncated_svd.joblib
 
-# Allow all models EXCEPT Random Forest
-!models/tfidf_models_with_truncatedSVD/lightgbm_model.joblib
-!models/tfidf_models_with_truncatedSVD/linear_svm_model.joblib
-!models/tfidf_models_with_truncatedSVD/logistic_regression_model.joblib
-!models/tfidf_models_with_truncatedSVD/xgboost_model.joblib
+# !models/bow_models_with_pca/count_vectorizer.joblib
+# !models/bow_models_with_pca/pca.joblib
 
-!models/bow_models_with_pca/lightgbm_model.joblib
-!models/bow_models_with_pca/linear_svm_model.joblib
-!models/bow_models_with_pca/logistic_regression_model.joblib
-!models/bow_models_with_pca/xgboost_model.joblib
+# # Allow all models EXCEPT Random Forest
+# !models/tfidf_models_with_truncatedSVD/lightgbm_model.joblib
+# !models/tfidf_models_with_truncatedSVD/linear_svm_model.joblib
+# !models/tfidf_models_with_truncatedSVD/logistic_regression_model.joblib
+# !models/tfidf_models_with_truncatedSVD/xgboost_model.joblib
+
+# !models/bow_models_with_pca/lightgbm_model.joblib
+# !models/bow_models_with_pca/linear_svm_model.joblib
+# !models/bow_models_with_pca/logistic_regression_model.joblib
+# !models/bow_models_with_pca/xgboost_model.joblib
+
+# !models/bow_models_without_pca/lightgbm_model.joblib
+# !models/bow_models_without_pca/linear_svm_model.joblib
+# !models/bow_models_without_pca/logistic_regression_model.joblib
+# !models/bow_models_without_pca/xgboost_model.joblib
+
+# !models/tfidf_models_without_truncatedSVD/lightgbm_model.joblib
+# !models/tfidf_models_without_truncatedSVD/linear_svm_model.joblib
+# !models/tfidf_models_without_truncatedSVD/logistic_regression_model.joblib
+# !models/tfidf_models_without_truncatedSVD/xgboost_model.joblib
 # --- Node/Web App ---
 node_modules/
 dist/
